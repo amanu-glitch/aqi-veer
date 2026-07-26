@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AQI Veer | Next-Gen Eco Navigation & Clean Air Routing</title>
+    <!-- Leaflet CSS for Interactive Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Floating Nature Animation Layer -->
+    <div id="leaves-container"></div>
+
+    <!-- Live Indian City AQI Ticker Bar -->
+    <div class="aqi-ticker-bar">
+        <div class="ticker-label">🚨 Live India Air Monitor:</div>
+        <div class="ticker-scroll">
+            <span>Delhi: <strong class="aqi-severe">342 (Severe)</strong></span> • 
+            <span>Kanpur: <strong class="aqi-poor">278 (Poor)</strong></span> • 
+            <span>Lucknow: <strong class="aqi-poor">245 (Poor)</strong></span> • 
+            <span>Mumbai: <strong class="aqi-mod">142 (Moderate)</strong></span> • 
+            <span>Bengaluru: <strong class="aqi-good">68 (Good)</strong></span> • 
+            <span>Jaipur: <strong class="aqi-mod">180 (Moderate)</strong></span> • 
+            <span>Dehradun: <strong class="aqi-good">52 (Good)</strong></span>
+        </div>
+    </div>
+
+    <!-- Main Navigation Header -->
+    <header class="navbar">
+        <div class="logo-group">
+            <!-- Rotating Tyre & Leaf Emblem SVG -->
+            <svg class="tyre-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="44" stroke="#1e272e" stroke-width="10" fill="none" stroke-dasharray="14 10"/>
+                <circle cx="50" cy="50" r="28" stroke="#2ecc71" stroke-width="6" fill="none"/>
+                <circle cx="50" cy="50" r="12" fill="#1e272e"/>
+                <line x1="50" y1="22" x2="50" y2="8" stroke="#1e272e" stroke-width="6" stroke-linecap="round"/>
+                <line x1="50" y1="78" x2="50" y2="92" stroke="#1e272e" stroke-width="6" stroke-linecap="round"/>
+                <line x1="22" y1="50" x2="8" y2="50" stroke="#1e272e" stroke-width="6" stroke-linecap="round"/>
+                <line x1="78" y1="50" x2="92" y2="50" stroke="#1e272e" stroke-width="6" stroke-linecap="round"/>
+                <path d="M50,50 Q65,30 80,35 Q65,60 50,50" fill="#2ecc71" opacity="0.8"/>
+            </svg>
+            <div>
+                <h1 class="brand-title">AQI <span class="highlight">VEER</span></h1>
+                <p class="brand-subtitle">Smart Air-Quality Routing & Health Protection System</p>
+            </div>
+        </div>
+        <div class="header-controls">
+            <label class="toggle-switch">
+                <input type="checkbox" id="toggle-sensors" checked>
+                <span class="slider"></span>
+                <span class="toggle-label">Live AQI Sensors</span>
+            </label>
+        </div>
+    </header>
+
+    <!-- App Dashboard Layout -->
+    <div class="dashboard-container">
+        <!-- Left Sidebar: Controls & Analytics -->
+        <aside class="control-sidebar">
+            <div class="panel-section">
+                <h2>📍 Route Planner</h2>
+                <p class="section-desc">Select an Indian highway corridor to compare pollution exposure.</p>
+                
+                <div class="form-group">
+                    <label for="route-select">Select Corridor:</label>
+                    <select id="route-select" class="custom-select">
+                        <option value="kanpur_delhi">Kanpur ➔ New Delhi (NH19 vs Green Belt)</option>
+                        <option value="mumbai_pune">Mumbai ➔ Pune (Expressway vs Ghat Scenic)</option>
+                        <option value="bengaluru_mysuru">Bengaluru ➔ Mysuru (Highway vs Rural Corridor)</option>
+                        <option value="delhi_jaipur">New Delhi ➔ Jaipur (Industrial vs Alwar Bypass)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Vehicle Type:</label>
+                    <div class="vehicle-grid">
+                        <button class="vehicle-btn active" data-type="car">🚗 Car / SUV</button>
+                        <button class="vehicle-btn" data-type="ev">⚡ Electric (EV)</button>
+                        <button class="vehicle-btn" data-type="bike">🏍️ Two-Wheeler</button>
+                        <button class="vehicle-btn" data-type="truck">🚛 Heavy Vehicle</button>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="calculate-btn" class="btn primary-btn">
+                        <span>🔍 Analyze Air Quality Routes</span>
+                    </button>
+                    <button id="simulate-btn" class="btn secondary-btn" disabled>
+                        <span>▶️ Start Live Drive Simulation</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Comparative Route Results -->
+            <div id="results-panel" class="panel-section results-section" style="display: none;">
+                <h2>📊 Environmental Impact</h2>
+                
+                <div class="route-comparison-cards">
+                    <!-- Standard Highway Route -->
+                    <div class="route-card bad-card">
+                        <div class="card-header">
+                            <span class="route-name">❌ Standard Highway</span>
+                            <span class="badge red" id="bad-aqi-badge">AQI: 285</span>
+                        </div>
+                        <div class="card-metrics">
+                            <div><small>Distance</small><p id="bad-dist">450 km</p></div>
+                            <div><small>Est. Time</small><p id="bad-time">6h 30m</p></div>
+                            <div><small>PM2.5 Intake</small><p id="bad-pm" class="text-red">High (48 µg/m³)</p></div>
+                        </div>
+                    </div>
+
+                    <!-- AQI Veer Eco Route -->
+                    <div class="route-card good-card">
+                        <div class="card-header">
+                            <span class="route-name">🌱 AQI Veer Green Corridor</span>
+                            <span class="badge green" id="good-aqi-badge">AQI: 110</span>
+                        </div>
+                        <div class="card-metrics">
+                            <div><small>Distance</small><p id="good-dist">472 km</p></div>
+                            <div><small>Est. Time</small><p id="good-time">6h 48m</p></div>
+                            <div><small>PM2.5 Intake</small><p id="good-pm" class="text-green">Low (18 µg/m³)</p></div>
+                        </div>
+                        <div class="eco-savings-banner">
+                            ✨ You avoid <strong>62% toxic smog</strong> with only +18 mins drive time!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Turn-by-Turn Clean Air Log -->
+                <div class="navigation-log">
+                    <h3>🗺️ Waypoint Air Quality Log</h3>
+                    <ul id="waypoint-list" class="waypoint-list">
+                        <!-- Populated dynamically via JavaScript -->
+                    </ul>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Viewport: Interactive Map -->
+        <main class="map-viewport">
+            <div id="map"></div>
+            
+            <!-- Floating Simulation Status Overlay -->
+            <div id="sim-overlay" class="sim-overlay" style="display: none;">
+                <div class="sim-status">
+                    <span class="sim-indicator"></span>
+                    <strong>Driving on AQI Veer Route...</strong>
+                </div>
+                <div class="sim-details">
+                    Current Zone AQI: <span id="sim-current-aqi" class="badge green">105 (Clean)</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+    <script src="simulation.js"></script>
+</body>
+</html>
